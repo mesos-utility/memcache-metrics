@@ -9,9 +9,9 @@ vet:
 	go get golang.org/x/tools/cmd/vet
 
 ## Validate this go project.
-validate: vet
+validate:
 	script/validate-gofmt
-	go vet ./...
+	#go vet ./...
 
 ## Run test case for this go project.
 test:
