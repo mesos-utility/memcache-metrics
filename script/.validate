@@ -5,7 +5,7 @@ if [ -z "$VALIDATE_UPSTREAM" ]; then
 	# are running more than one validate bundlescript
 
 	VALIDATE_REPO='https://github.com/mesos-utility/memcache-metrics.git'
-	VALIDATE_BRANCH='dev'
+	VALIDATE_BRANCH='master'
 
 	if [ "$TRAVIS" = 'true' -a "$TRAVIS_PULL_REQUEST" != 'false' ]; then
 		VALIDATE_REPO="https://github.com/${TRAVIS_REPO_SLUG}.git"
