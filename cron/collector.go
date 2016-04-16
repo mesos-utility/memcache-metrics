@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/golang/glog"
@@ -12,11 +11,6 @@ import (
 	"github.com/open-falcon/common/model"
 	memc "github.com/smallfish/memcache"
 )
-
-//var gaugess = [...]string{"get_hit_ratio", "incr_hit_ratio", "decr_hit_ratio",
-//	"delete_hit_ratio", "usage", "curr_connections", "total_connections",
-//	"bytes", "pointer_size", "uptime", "limit_maxbytes", "threads", "curr_items",
-//	"total_items", "connection_structures"}
 
 var gaugess = map[string]int{"get_hit_ratio": 1, "incr_hit_ratio": 1,
 	"decr_hit_ratio": 1, "delete_hit_ratio": 1, "usage": 1,
@@ -88,41 +82,11 @@ func collect(addrs []string) {
 				}
 			}
 
-			bytes, _ := strconv.ParseFloat(stats["bytes"], 64)
-			limit_maxbytes, _ := strconv.ParseFloat(stats["limit_maxbytes"], 64)
-			stats["usage"] = fmt.Sprintf("%.2f", (100 * bytes / limit_maxbytes))
-
-			if stats["get_hits"] == "0" && stats["get_misses"] == "0" {
-				stats["get_hit_ratio"] = "0.0"
-			} else {
-				get_hits, _ := strconv.ParseFloat(stats["get_hits"], 64)
-				get_misses, _ := strconv.ParseFloat(stats["get_misses"], 64)
-				stats["get_hit_ratio"] = fmt.Sprintf("%.2f", 100*(get_hits/(get_hits+get_misses)))
-			}
-
-			if stats["incr_hits"] == "0" && stats["incr_misses"] == "0" {
-				stats["incr_hit_ratio"] = "0.0"
-			} else {
-				incr_hits, _ := strconv.ParseFloat(stats["incr_hits"], 64)
-				incr_misses, _ := strconv.ParseFloat(stats["incr_misses"], 64)
-				stats["incr_hit_ratio"] = fmt.Sprintf("%.2f", 100*(incr_hits/(incr_hits+incr_misses)))
-			}
-
-			if stats["decr_hits"] == "0" && stats["decr_misses"] == "0" {
-				stats["decr_hit_ratio"] = "0.0"
-			} else {
-				decr_hits, _ := strconv.ParseFloat(stats["decr_hits"], 64)
-				decr_misses, _ := strconv.ParseFloat(stats["decr_misses"], 64)
-				stats["decr_hit_ratio"] = fmt.Sprintf("%.2f", 100*(decr_hits/(decr_hits+decr_misses)))
-			}
-
-			if stats["delete_hits"] == "0" && stats["delete_misses"] == "0" {
-				stats["delete_hit_ratio"] = "0.0"
-			} else {
-				delete_hits, _ := strconv.ParseFloat(stats["delete_hits"], 64)
-				delete_misses, _ := strconv.ParseFloat(stats["delete_misses"], 64)
-				stats["delete_hit_ratio"] = fmt.Sprintf("%.2f", 100*(delete_hits/(delete_hits+delete_misses)))
-			}
+			stats["usage"] = g.CalculateMetricRatio(stats["bytes"], stats["limit_maxbytes"])
+			stats["get_hit_ratio"] = g.CalculateMetricRatio(stats["get_hits"], stats["get_misses"])
+			stats["incr_hit_ratio"] = g.CalculateMetricRatio(stats["incr_hits"], stats["incr_misses"])
+			stats["decr_hit_ratio"] = g.CalculateMetricRatio(stats["decr_hits"], stats["decr_misses"])
+			stats["delete_hit_ratio"] = g.CalculateMetricRatio(stats["delete_hits"], stats["delete_misses"])
 
 			var tags string
 			_, port, err := net.SplitHostPort(addr)

@@ -93,6 +93,9 @@ func (this *SingleConnRpcClient) Call(method string, args interface{}, reply int
 	return nil
 }
 
+// Set diff metrics send methods for Transfer:
+//      PostToAgent     ->  http://127.0.0.1:1988/v1/push
+//      SendToTransfer  ->  127.0.0.1:8433
 func InitRpcClients() {
 	if Config().Transfer.Enable {
 		taddr := Config().Transfer.Addr

@@ -2,7 +2,6 @@ package g
 
 import (
 	"encoding/json"
-	"os"
 	"sync"
 
 	"github.com/golang/glog"
@@ -78,13 +77,4 @@ func ParseConfig(cfg string) {
 	config = &c
 
 	glog.Infoln("g:ParseConfig, ok, ", cfg)
-}
-
-// get hostname
-func Hostname() (string, error) {
-	hostname, err := os.Hostname()
-	if err != nil {
-		glog.Warningf("ERROR: os.Hostname() fail %v", err)
-	}
-	return hostname, err
 }
