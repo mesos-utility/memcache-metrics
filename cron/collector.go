@@ -165,6 +165,6 @@ func collect(addrs []string) {
 				//glog.Infof("%v\n", metric)
 			}
 		}
-		g.SendToTransfer(mvs)
+		g.SendMetrics(mvs)
 	}
 }

@@ -1,18 +1,23 @@
 package g
 
 import (
+	"bytes"
+	"encoding/json"
 	"github.com/toolkits/net"
-	"log"
 	"math"
+	"net/http"
 	"net/rpc"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/open-falcon/common/model"
 )
 
 var (
 	TransferClient *SingleConnRpcClient
+	SendMetrics    func(metrics []*model.MetricValue)
 )
 
 type SingleConnRpcClient struct {
@@ -47,7 +52,7 @@ func (this *SingleConnRpcClient) insureConn() {
 			return
 		}
 
-		log.Printf("dial %s fail: %v", this.RpcServer, err)
+		glog.Warningf("dial %s fail: %v", this.RpcServer, err)
 
 		if retry > 6 {
 			retry = 1
@@ -76,7 +81,7 @@ func (this *SingleConnRpcClient) Call(method string, args interface{}, reply int
 
 	select {
 	case <-time.After(timeout):
-		log.Printf("[WARN] rpc call timeout %v => %v", this.rpcClient, this.RpcServer)
+		glog.Warningf("rpc call timeout %v => %v", this.rpcClient, this.RpcServer)
 		this.close()
 	case err := <-done:
 		if err != nil {
@@ -90,9 +95,15 @@ func (this *SingleConnRpcClient) Call(method string, args interface{}, reply int
 
 func InitRpcClients() {
 	if Config().Transfer.Enable {
-		TransferClient = &SingleConnRpcClient{
-			RpcServer: Config().Transfer.Addr,
-			Timeout:   time.Duration(Config().Transfer.Timeout) * time.Millisecond,
+		taddr := Config().Transfer.Addr
+		if strings.HasPrefix(taddr, "http") {
+			SendMetrics = PostToAgent
+		} else {
+			TransferClient = &SingleConnRpcClient{
+				RpcServer: Config().Transfer.Addr,
+				Timeout:   time.Duration(Config().Transfer.Timeout) * time.Millisecond,
+			}
+			SendMetrics = SendToTransfer
 		}
 	}
 }
@@ -105,16 +116,49 @@ func SendToTransfer(metrics []*model.MetricValue) {
 	debug := Config().Debug
 
 	if debug {
-		log.Printf("=> <Total=%d> %v\n", len(metrics), metrics[0])
+		glog.Infof("=> <Total=%d> %v\n", len(metrics), metrics[0])
 	}
 
 	var resp model.TransferResponse
 	err := TransferClient.Call("Transfer.Update", metrics, &resp)
 	if err != nil {
-		log.Println("call Transfer.Update fail", err)
+		glog.Warningf("call Transfer.Update fail", err)
 	}
 
 	if debug {
-		log.Println("<=", &resp)
+		glog.Infof("<= %v", resp)
+	}
+}
+
+func PostToAgent(metrics []*model.MetricValue) {
+	if len(metrics) == 0 {
+		return
+	}
+
+	debug := Config().Debug
+
+	if debug {
+		glog.Infof("=> <Total=%d> %v\n", len(metrics), metrics[0])
+	}
+
+	contentJson, err := json.Marshal(metrics)
+	if err != nil {
+		glog.Warningf("Error for PostToAgent json Marshal: %v", err)
+		return
+	}
+	contentReader := bytes.NewReader(contentJson)
+	req, err := http.NewRequest("POST", Config().Transfer.Addr, contentReader)
+	if err != nil {
+		glog.Warningf("Error for PostToAgent in NewRequest: %v", err)
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		glog.Warningf("Error for PostToAgent in http client Do: %v", err)
+	} else if debug {
+		glog.Infof("<= %v", resp)
 	}
 }
