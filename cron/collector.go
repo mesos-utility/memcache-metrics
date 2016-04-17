@@ -45,11 +45,12 @@ func Collect() {
 func collect(addrs []string) {
 	// start collect data for memcached cluster.
 	var attachtags = g.Config().AttachTags
+	var interval int64 = g.Config().Transfer.Interval
+	timer := time.NewTicker(time.Duration(interval) * time.Second)
 
 	for {
 	REST:
-		var interval int64 = g.Config().Transfer.Interval
-		time.Sleep(time.Duration(interval) * time.Second)
+		<-timer.C
 		hostname, err := g.Hostname()
 		if err != nil {
 			goto REST

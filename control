@@ -17,7 +17,7 @@ function build() {
     cat <<EOF > ./g/git.go
 package g
 const (
-       COMMIT ="$commit"
+       COMMIT = "$commit"
 )
 EOF
     GO15VENDOREXPERIMENT=1; go build -o $app main.go
