@@ -20,9 +20,11 @@ const (
        COMMIT = "$commit"
 )
 EOF
-    GO15VENDOREXPERIMENT=1; go build -o $app main.go
-    #go get github.com/tools/godep
-    #GO15VENDOREXPERIMENT=0; godep go build -v -o $app main.go
+    go get github.com/tools/godep
+    export GO15VENDOREXPERIMENT=0
+    GOPATH=`godep path` godep restore
+    GOPATH="`godep path`:$GOPATH" && go build -o $app main.go
+    #GO15VENDOREXPERIMENT=1; go build -o $app main.go
 
     sc=$?
     if [ $sc -ne 0 ];then

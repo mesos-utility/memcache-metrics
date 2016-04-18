@@ -1,8 +1,13 @@
 default: help
 
 ## Make bin for memcache-metrics.
-bin:
+bin: godep
 	./control build
+
+## Get godep and restore dep.
+godep:
+	@go get -u github.com/tools/godep
+	GO15VENDOREXPERIMENT=0 GOPATH=`godep path` godep restore
 
 ## Get vet go tools.
 vet:
