@@ -164,4 +164,5 @@ func PostToAgent(metrics []*model.MetricValue) {
 	} else if debug {
 		glog.Infof("<= %v", resp)
 	}
+	defer resp.Body.Close()
 }
