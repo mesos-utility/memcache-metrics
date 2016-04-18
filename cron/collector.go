@@ -44,6 +44,7 @@ func Collect() {
 
 func collect(addrs []string) {
 	// start collect data for memcached cluster.
+	var stats = make(map[string]string)
 	var attachtags = g.Config().AttachTags
 	var interval int64 = g.Config().Transfer.Interval
 	timer := time.NewTicker(time.Duration(interval) * time.Second)
@@ -63,17 +64,16 @@ func collect(addrs []string) {
 				glog.Warningf("Error connect for %s", addr)
 				continue
 			}
-			defer mc.Close()
 
 			result, err := mc.Stats("")
 			if err != nil {
 				glog.Warningf("Get %s metrics failed: %s", err)
 			}
+			mc.Close()
 
 			re := regexp.MustCompile("STAT (.*) ([0-9]+\\.?[0-9]*)\n")
 			segs := re.FindAllStringSubmatch(string(result[:]), -1)
 
-			var stats = make(map[string]string)
 			for i := 0; i < len(segs); i++ {
 				key, value := segs[i][1], segs[i][2]
 				if key == "" || key == "pid" || key == "time" {
