@@ -39,19 +39,20 @@ func Collect() {
 		return
 	}
 
-	go collect(addrs)
+	collect(addrs)
 }
 
 func collect(addrs []string) {
 	// start collect data for memcached cluster.
-	var stats = make(map[string]string)
 	var attachtags = g.Config().AttachTags
 	var interval int64 = g.Config().Transfer.Interval
-	timer := time.NewTicker(time.Duration(interval) * time.Second)
+	var re = regexp.MustCompile("STAT (.*) ([0-9]+\\.?[0-9]*)\n")
+	var stats = make(map[string]string)
+	var ticker = time.NewTicker(time.Duration(interval) * time.Second)
 
 	for {
 	REST:
-		<-timer.C
+		<-ticker.C
 		hostname, err := g.Hostname()
 		if err != nil {
 			goto REST
@@ -68,10 +69,10 @@ func collect(addrs []string) {
 			result, err := mc.Stats("")
 			if err != nil {
 				glog.Warningf("Get %s metrics failed: %s", err)
+				continue
 			}
 			mc.Close()
 
-			re := regexp.MustCompile("STAT (.*) ([0-9]+\\.?[0-9]*)\n")
 			segs := re.FindAllStringSubmatch(string(result[:]), -1)
 
 			for i := 0; i < len(segs); i++ {

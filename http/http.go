@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 
 	"github.com/mesos-utility/memcache-metrics/g"
 )

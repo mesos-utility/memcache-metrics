@@ -161,7 +161,10 @@ func PostToAgent(metrics []*model.MetricValue) {
 	resp, err := client.Do(req)
 	if err != nil {
 		glog.Warningf("Error for PostToAgent in http client Do: %v", err)
-	} else if debug {
+		return
+	}
+
+	if debug {
 		glog.Infof("<= %v", resp)
 	}
 	defer resp.Body.Close()
