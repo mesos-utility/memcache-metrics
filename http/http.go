@@ -2,10 +2,10 @@ package http
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	_ "net/http/pprof"
 
+	"github.com/golang/glog"
 	"github.com/mesos-utility/memcache-metrics/g"
 )
 
@@ -41,8 +41,8 @@ func startHttpServer() {
 		MaxHeaderBytes: 1 << 30,
 	}
 
-	log.Println("http.startHttpServer ok, listening ", addr)
-	log.Fatalln(s.ListenAndServe())
+	glog.Infoln("http.startHttpServer ok, listening ", addr)
+	glog.Fatalln(s.ListenAndServe())
 }
 
 // WriteJSON writes the value v to the http response stream as json with standard json encoding.
