@@ -39,7 +39,7 @@ func Collect() {
 		return
 	}
 
-	collect(addrs)
+	go collect(addrs)
 }
 
 func collect(addrs []string) {
