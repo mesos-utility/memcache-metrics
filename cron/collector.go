@@ -12,11 +12,22 @@ import (
 	memc "github.com/smallfish/memcache"
 )
 
-var gaugess = map[string]int{"get_hit_ratio": 1, "incr_hit_ratio": 1,
-	"decr_hit_ratio": 1, "delete_hit_ratio": 1, "usage": 1,
-	"curr_connections": 1, "total_connections": 1, "bytes": 1,
-	"pointer_size": 1, "uptime": 1, "limit_maxbytes": 1, "threads": 1,
-	"curr_items": 1, "total_items": 1, "connection_structures": 1}
+var gaugess = map[string]int{
+	"get_hit_ratio":         1,
+	"incr_hit_ratio":        1,
+	"decr_hit_ratio":        1,
+	"delete_hit_ratio":      1,
+	"usage":                 1,
+	"curr_connections":      1,
+	"total_connections":     1,
+	"bytes":                 1,
+	"pointer_size":          1,
+	"uptime":                1,
+	"limit_maxbytes":        1,
+	"threads":               1,
+	"curr_items":            1,
+	"total_items":           1,
+	"connection_structures": 1}
 
 func Collect() {
 	if !g.Config().Transfer.Enable {
@@ -132,5 +143,6 @@ func collect(addrs []string) {
 			}
 		}
 		g.SendMetrics(mvs)
+		mvs = nil
 	}
 }
