@@ -4,8 +4,8 @@
 *.dump
 *.log.*
 
-_workspace
+#_workspace
 cfg.json
 var/
 
-memcache-metrics*
+memcache-metrics
